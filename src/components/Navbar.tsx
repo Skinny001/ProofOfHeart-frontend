@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useWallet } from "@/components/WalletContext";
 import WalletConnection from "./WalletConnection";
 
 const navLinks = [
@@ -10,10 +11,11 @@ const navLinks = [
   { href: "/causes", label: "Explore Causes" },
   { href: "/about", label: "About" },
 ];
-
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { publicKey, isWalletConnected, connectWallet, disconnectWallet, isLoading } = useWallet();
 
+  const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-white/80 backdrop-blur-sm dark:border-white/10 dark:bg-zinc-900/80">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
@@ -44,6 +46,29 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {!isWalletConnected ? (
+            <button
+              type="button"
+              onClick={connectWallet}
+              disabled={isLoading}
+              className="hidden h-10 items-center justify-center rounded-full bg-linear-to-r from-red-500 to-pink-500 px-5 text-sm font-semibold text-white transition-all hover:from-red-600 hover:to-pink-600 hover:shadow-lg md:inline-flex disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Connecting...' : 'Connect Wallet'}
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
+                {formatAddress(publicKey!)}
+              </span>
+              <button
+                type="button"
+                onClick={disconnectWallet}
+                className="px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
+              >
+                Disconnect
+              </button>
+            </div>
+          )}
           <div className="hidden md:block">
             <WalletConnection onWalletConnected={() => {}} onWalletDisconnected={() => {}} />
           </div>
@@ -102,6 +127,29 @@ export default function Navbar() {
               </ul>
             </nav>
 
+            {!isWalletConnected ? (
+              <button
+                type="button"
+                onClick={connectWallet}
+                disabled={isLoading}
+                className="h-10 w-full rounded-full bg-linear-to-r from-red-500 to-pink-500 px-4 text-sm font-semibold text-white transition-all hover:from-red-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Connecting...' : 'Connect Wallet'}
+              </button>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <span className="px-3 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium text-center">
+                  {formatAddress(publicKey!)}
+                </span>
+                <button
+                  type="button"
+                  onClick={disconnectWallet}
+                  className="px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                >
+                  Disconnect
+                </button>
+              </div>
+            )}
             <div className="mt-2">
               <WalletConnection onWalletConnected={() => {}} onWalletDisconnected={() => {}} />
             </div>

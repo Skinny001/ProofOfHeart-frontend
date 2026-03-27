@@ -1,5 +1,8 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useWallet } from '../../components/WalletContext';
+import CauseCard from '../../components/CauseCard';
 import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Cause, Vote } from '../../types';
@@ -30,12 +33,20 @@ function CausesContent() {
   const debouncedSearch = useDebounce(rawSearch, 300);
 
   const [causes, setCauses] = useState<Cause[]>(mockCauses);
-  const [userWalletAddress, setUserWalletAddress] = useState<string | null>(null);
   const [userVotes, setUserVotes] = useState<Record<string, Vote>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const { publicKey: userWalletAddress, isWalletConnected } = useWallet();
   const [isVotingFor, setIsVotingFor] = useState<string | null>(null);
 
   // Sync URL query params whenever filters change
   useEffect(() => {
+    if (userWalletAddress) {
+      loadUserVotes();
+    } else {
+      setUserVotes({});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userWalletAddress]);
     const params = new URLSearchParams();
     if (debouncedSearch) params.set('q', debouncedSearch);
     if (category !== 'all') params.set('category', category);
@@ -64,6 +75,11 @@ function CausesContent() {
     setUserVotes(votes);
   }, [userWalletAddress, causes]);
 
+  const handleVote = async (causeId: string, voteType: 'upvote' | 'downvote') => {
+    if (!userWalletAddress) {
+      alert('Please connect your wallet first');
+      return;
+    }
   useEffect(() => {
     if (userWalletAddress) loadUserVotes();
   }, [userWalletAddress, loadUserVotes]);
@@ -79,6 +95,31 @@ function CausesContent() {
     if (stellarVotingService.hasUserVoted(causeId, userWalletAddress)) {
       alert('You have already voted on this cause'); return;
     }
+    setIsLoading(true);
+    try {
+      const transactionHash = await stellarVotingService.castVote(causeId, voteType, userWalletAddress);
+      const newVote: Vote = {
+        causeId,
+        voter: userWalletAddress,
+        voteType,
+        timestamp: new Date(),
+        transactionHash,
+      };
+      setUserVotes(prev => ({ ...prev, [causeId]: newVote }));
+      setCauses(prev => prev.map(cause => {
+        if (cause.id === causeId) {
+          return {
+            ...cause,
+            upvotes: voteType === 'upvote' ? cause.upvotes + 1 : cause.upvotes,
+            downvotes: voteType === 'downvote' ? cause.downvotes + 1 : cause.downvotes,
+            totalVotes: cause.totalVotes + 1,
+          };
+        }
+        return cause;
+      }));
+      alert(`Vote cast successfully! Transaction: ${transactionHash}`);
+    } catch (error) {
+      console.error('Voting failed:', error);
     setIsVotingFor(causeId);
     try {
       const transactionHash = await stellarVotingService.castVote(causeId, voteType, userWalletAddress);
@@ -152,6 +193,8 @@ function CausesContent() {
   };
 
   return (
+  <div className="bg-linear-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
+      {/* Main Content */}
     <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
       <main className="container mx-auto px-4 py-8">
         {/* Page heading */}
@@ -162,10 +205,7 @@ function CausesContent() {
               Browse, search, and vote on causes that matter to you.
             </p>
           </div>
-          <WalletConnection
-            onWalletConnected={handleWalletConnected}
-            onWalletDisconnected={handleWalletDisconnected}
-          />
+          {/* Wallet connect/disconnect is now handled in Navbar */}
         </div>
 
         {/* Search + filters bar */}
