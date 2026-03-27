@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useWallet } from "@/components/WalletContext";
+import WalletConnection from "./WalletConnection";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -68,6 +69,9 @@ export default function Navbar() {
               </button>
             </div>
           )}
+          <div className="hidden md:block">
+            <WalletConnection onWalletConnected={() => {}} onWalletDisconnected={() => {}} />
+          </div>
 
           <button
             type="button"
@@ -146,6 +150,9 @@ export default function Navbar() {
                 </button>
               </div>
             )}
+            <div className="mt-2">
+              <WalletConnection onWalletConnected={() => {}} onWalletDisconnected={() => {}} />
+            </div>
           </div>
         </div>
       )}
