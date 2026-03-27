@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import WalletConnection from '../../components/WalletConnection';
+import { useWallet } from '../../components/WalletContext';
 import CauseCard from '../../components/CauseCard';
 import { Cause, Vote } from '../../types';
 import { stellarVotingService } from '../../services/stellarVoting';
@@ -54,20 +54,21 @@ const mockCauses: Cause[] = [
 
 export default function CausesPage() {
   const [causes, setCauses] = useState<Cause[]>(mockCauses);
-  const [userWalletAddress, setUserWalletAddress] = useState<string | null>(null);
   const [userVotes, setUserVotes] = useState<Record<string, Vote>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const { publicKey: userWalletAddress, isWalletConnected } = useWallet();
 
   useEffect(() => {
-    // Load user votes when wallet is connected
     if (userWalletAddress) {
       loadUserVotes();
+    } else {
+      setUserVotes({});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userWalletAddress]);
 
   const loadUserVotes = async () => {
     if (!userWalletAddress) return;
-
     const votes: Record<string, Vote> = {};
     for (const cause of causes) {
       const userVote = stellarVotingService.getUserVote(cause.id, userWalletAddress);
@@ -84,33 +85,18 @@ export default function CausesPage() {
     setUserVotes(votes);
   };
 
-  const handleWalletConnected = (publicKey: string) => {
-    setUserWalletAddress(publicKey);
-  };
-
-  const handleWalletDisconnected = () => {
-    setUserWalletAddress(null);
-    setUserVotes({});
-  };
-
   const handleVote = async (causeId: string, voteType: 'upvote' | 'downvote') => {
     if (!userWalletAddress) {
       alert('Please connect your wallet first');
       return;
     }
-
-    // Check if user already voted
     if (stellarVotingService.hasUserVoted(causeId, userWalletAddress)) {
       alert('You have already voted on this cause');
       return;
     }
-
     setIsLoading(true);
     try {
-      // Cast vote on Stellar network
       const transactionHash = await stellarVotingService.castVote(causeId, voteType, userWalletAddress);
-
-      // Update local state
       const newVote: Vote = {
         causeId,
         voter: userWalletAddress,
@@ -118,10 +104,7 @@ export default function CausesPage() {
         timestamp: new Date(),
         transactionHash,
       };
-
       setUserVotes(prev => ({ ...prev, [causeId]: newVote }));
-
-      // Update cause vote counts
       setCauses(prev => prev.map(cause => {
         if (cause.id === causeId) {
           return {
@@ -133,7 +116,6 @@ export default function CausesPage() {
         }
         return cause;
       }));
-
       alert(`Vote cast successfully! Transaction: ${transactionHash}`);
     } catch (error) {
       console.error('Voting failed:', error);
@@ -144,7 +126,7 @@ export default function CausesPage() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
+  <div className="bg-linear-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -156,10 +138,7 @@ export default function CausesPage() {
               Vote on causes that matter to you. Your voice helps validate and fund meaningful initiatives.
             </p>
           </div>
-          <WalletConnection
-            onWalletConnected={handleWalletConnected}
-            onWalletDisconnected={handleWalletDisconnected}
-          />
+          {/* Wallet connect/disconnect is now handled in Navbar */}
         </div>
 
         {isLoading && (
