@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Campaign, Vote, CATEGORY_LABELS, stroopsToXlm } from '../../../types';
+import { explorerTxUrl } from '../../../utils/explorer';
 import { useCampaign } from '../../../hooks/useCampaign';
 import { stellarVotingService } from '../../../services/stellarVoting';
 import { useToast } from '../../../components/ToastProvider';
@@ -86,7 +87,9 @@ export default function CauseDetailPage() {
         downvotes: voteType === 'downvote' ? prev.downvotes + 1 : prev.downvotes,
         totalVotes: prev.totalVotes + 1,
       }));
-      showSuccess('Your vote has been cast successfully.');
+      showSuccess(
+        `Your vote has been cast successfully. <a href="${explorerTxUrl(transactionHash)}" target="_blank" rel="noopener noreferrer" style="color:#2563eb;text-decoration:underline;">View on Explorer</a>`
+      );
     } catch (error) {
       showError(parseContractError(error));
     } finally {
@@ -171,7 +174,7 @@ export default function CauseDetailPage() {
   const categoryLabel = CATEGORY_LABELS[campaign.category] ?? 'Other';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
+  <div className="min-h-screen bg-linear-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Breadcrumb + Wallet */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

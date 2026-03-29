@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Campaign, Vote, CATEGORY_LABELS, deriveCampaignStatus, CampaignStatus } from '../../types';
+import { explorerTxUrl } from '../../utils/explorer';
 import { SORT_OPTIONS } from '../../lib/mockCauses';
 import { stellarVotingService } from '../../services/stellarVoting';
 import { useCampaigns } from '../../hooks/useCampaigns';
@@ -142,7 +143,9 @@ function CausesContent() {
           },
         };
       });
-      showSuccess('Your vote has been cast successfully.');
+      showSuccess(
+        `Your vote has been cast successfully. <a href="${explorerTxUrl(transactionHash)}" target="_blank" rel="noopener noreferrer" style="color:#2563eb;text-decoration:underline;">View on Explorer</a>`
+      );
     } catch (error) {
       showError(parseContractError(error));
     } finally {
@@ -216,7 +219,7 @@ function CausesContent() {
   // -------------------------------------------------------------------------
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
+  <div className="min-h-screen bg-linear-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
       <main className="container mx-auto px-4 py-8">
         {/* Page heading */}
         <div className="mb-6">

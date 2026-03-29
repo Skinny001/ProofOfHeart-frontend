@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { explorerTxUrl } from "@/utils/explorer";
 import Link from "next/link";
 import { useWallet } from "@/components/WalletContext";
 import { useCampaigns } from "@/hooks/useCampaigns";
@@ -109,7 +110,16 @@ export default function DashboardPage() {
                 <li key={idx} className="border rounded p-3 bg-zinc-50 dark:bg-zinc-900">
                   <div className="font-medium">{cause ? cause.title : `Cause #${vote.causeId}`}</div>
                   <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                    {vote.voteType === 'upvote' ? 'Upvoted' : 'Downvoted'} on {vote.timestamp.toLocaleDateString()} (tx: {vote.transactionHash})
+                    {vote.voteType === 'upvote' ? 'Upvoted' : 'Downvoted'} on {vote.timestamp.toLocaleDateString()} (tx: 
+                      <a
+                        href={explorerTxUrl(vote.transactionHash)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 ml-1"
+                      >
+                        {vote.transactionHash}
+                      </a>
+                    )
                   </div>
                 </li>
               );
@@ -131,7 +141,16 @@ export default function DashboardPage() {
                 <li key={idx} className="border rounded p-3 bg-zinc-50 dark:bg-zinc-900">
                   <div className="font-medium">{cause ? cause.title : `Cause #${fund.causeId}`}</div>
                   <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Donated {fund.amount} XLM on {fund.timestamp.toLocaleDateString()} (tx: {fund.tx})
+                    Donated {fund.amount} XLM on {fund.timestamp.toLocaleDateString()} (tx: 
+                      <a
+                        href={explorerTxUrl(fund.tx)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 ml-1"
+                      >
+                        {fund.tx}
+                      </a>
+                    )
                   </div>
                 </li>
               );
