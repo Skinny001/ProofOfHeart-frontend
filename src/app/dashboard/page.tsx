@@ -6,9 +6,8 @@ import Link from "next/link";
 import { useWallet } from "@/components/WalletContext";
 import { useCampaigns } from "@/hooks/useCampaigns";
 import { getStellarBalance } from "@/lib/getStellarBalance";
-import RevenueSharingPanel from "@/components/RevenueSharingPanel";
-import MyContributionsSection from "@/components/MyContributionsSection";
-import { basisPointsToPercentage, stroopsToXlm } from "@/types";
+import MyContributionsSection from "@/components/MyContributionsSection"; // Re-importing MyContributionsSection
+// ...existing code...
 
 export default function DashboardPage() {
   const { publicKey, isWalletConnected } = useWallet();

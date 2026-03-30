@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Campaign, Vote, CATEGORY_LABELS, deriveCampaignStatus, CampaignStatus } from '../../types';
+import { Campaign, Vote, CATEGORY_LABELS, CampaignStatus } from '../../types';
 import { explorerTxUrl } from '../../utils/explorer';
 import { SORT_OPTIONS } from '../../lib/mockCauses';
 import { stellarVotingService } from '../../services/stellarVoting';
@@ -67,7 +67,7 @@ function CausesContent() {
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [userVotes, setUserVotes] = useState<Record<string, Vote>>({});
-  const [voteCounts] = useState<Record<number, { upvotes: number; downvotes: number; totalVotes: number }>>({});
+  const [voteCounts, setVoteCounts] = useState<Record<number, { upvotes: number; downvotes: number; totalVotes: number }>>({});
   const [isVotingFor, setIsVotingFor] = useState<number | null>(null);
   const { publicKey: userWalletAddress } = useWallet();
   const { showError, showSuccess, showWarning } = useToast();
@@ -137,7 +137,7 @@ function CausesContent() {
         transactionHash,
       };
       setUserVotes((prev) => ({ ...prev, [campaignId]: newVote }));
-      setVoteCounts((prev) => {
+      setVoteCounts((prev: Record<number, { upvotes: number; downvotes: number; totalVotes: number }>) => {
         const current = prev[campaignId] ?? { upvotes: 0, downvotes: 0, totalVotes: 0 };
         return {
           ...prev,
